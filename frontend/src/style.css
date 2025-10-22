@@ -1,0 +1,14 @@
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+.v-application {
+  background: #fafafa;
+}
+.container-narrow {
+  max-width: 740px;
+  margin-inline: auto;
+  padding: 16px;
+}
