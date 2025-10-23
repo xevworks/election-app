@@ -13,6 +13,7 @@
 
     <v-footer app class="pa-4">
       <div class="text-caption mx-auto">© KPU {{ new Date().getFullYear() }} | PPI Osaka-Nara</div>
+      <div class="text-caption mx-auto">Build with passion by xevworks</div>
     </v-footer>
   </v-app>
 </template>

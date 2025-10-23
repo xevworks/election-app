@@ -13,11 +13,7 @@
       <h2 class="text-subtitle-1 mb-2">Kandidat Calon Ketua PPI Osaka-Nara</h2>
       <v-row dense>
         <v-col v-for="c in candidates" :key="c.id" cols="12" sm="6">
-          <CandidateCard
-            :name="c.name"
-            :program="c.vision || '—'"
-            :poster-url="c.poster_url || fallbackPoster"
-          />
+          <CandidateCard :name="c.name" :program="c.vision || '—'" :poster-url="c.poster_url || fallbackPoster" />
         </v-col>
       </v-row>
 
@@ -25,14 +21,11 @@
 
       <h2 class="text-subtitle-1 mb-2">Hasil Voting (jika dirilis KPU)</h2>
       <div v-if="active?.show_results && results?.length">
-        <v-list density="compact" class="rounded-lg">
-          <v-list-item v-for="r in results" :key="r.candidate_id">
-            <v-list-item-title>{{ r.candidate_name }}</v-list-item-title>
-            <v-list-item-subtitle>{{ r.votes }} suara</v-list-item-subtitle>
-          </v-list-item>
-        </v-list>
+        <ResultsBarChart :data="results" />
       </div>
-      <div v-else class="text-body-2 text-medium-emphasis">Hasil belum dirilis.</div>
+      <div v-else class="text-body-2 text-medium-emphasis">
+        Hasil belum dirilis.
+      </div>
     </v-sheet>
   </div>
 </template>
@@ -41,6 +34,7 @@
 import { onMounted, ref, computed } from 'vue'
 import http from '@/api/http'
 import CandidateCard from '@/components/CandidateCard.vue'
+import ResultsBarChart from '@/components/ResultsBarChart.vue'
 
 const active = ref(null)
 const candidates = ref([])
