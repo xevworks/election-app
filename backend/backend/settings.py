@@ -26,7 +26,14 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1'])
 
 ADMIN_API_KEY = env('ADMIN_API_KEY', default='dev-admin-key')
 
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[
+    'https://election-ppion.muhammadalqaaf.com',
+])
+
 if not DEBUG:
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_HTTPONLY = False
+    CSRF_COOKIE_SAMESITE = 'Lax'
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
