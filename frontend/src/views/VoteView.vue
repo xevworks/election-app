@@ -27,7 +27,7 @@
                     </v-avatar>
                     <div class="candidate-details">
                       <div class="text-subtitle-2 font-weight-bold">{{ c.name }}</div>
-                      <div class="text-caption text-medium-emphasis">{{ c.vision || '—' }}</div>
+                      <div class="text-caption text-medium-emphasis">{{ c.institution || '—' }}</div>
                     </div>
                   </div>
                   <v-radio :value="c.id" class="candidate-radio" />
