@@ -46,13 +46,13 @@
         <h2 class="text-subtitle-1 mb-2">Kandidat</h2>
         <v-form @submit.prevent="addCandidate" class="mb-3">
           <v-row dense>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="6">
               <v-text-field v-model="newCand.name" label="Nama kandidat" required />
             </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field v-model="newCand.vision" label="Visi (singkat)" />
+            <v-col cols="12" md="6">
+              <v-text-field v-model="newCand.institution" label="Institusi / Universitas" />
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12">
               <v-file-input 
                 v-model="newCand.posterFile" 
                 label="Upload Poster (JPG/PNG)" 
@@ -62,12 +62,37 @@
               />
             </v-col>
           </v-row>
+          
           <v-img 
             v-if="newCand.posterPreview" 
             :src="newCand.posterPreview" 
             max-height="200" 
             class="mb-3 rounded"
           />
+
+          <v-textarea
+            v-model="newCand.vision"
+            label="Visi & Misi (Markdown)"
+            rows="8"
+            auto-grow
+            hint="Gunakan format Markdown: **bold**, *italic*, # Heading, - list item, dll."
+            persistent-hint
+            class="mb-3"
+          />
+
+          <!-- Markdown Preview -->
+          <v-expansion-panels v-if="newCand.vision" class="mb-3">
+            <v-expansion-panel>
+              <v-expansion-panel-title>
+                <v-icon class="mr-2">mdi-eye</v-icon>
+                Preview Markdown
+              </v-expansion-panel-title>
+              <v-expansion-panel-text>
+                <div class="markdown-preview pa-4" v-html="previewMarkdown(newCand.vision)"></div>
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-expansion-panels>
+
           <v-btn type="submit" color="primary" :loading="adding">Tambah Kandidat</v-btn>
         </v-form>
 
@@ -79,7 +104,9 @@
               </v-avatar>
             </template>
             <v-list-item-title>{{ c.name }}</v-list-item-title>
-            <v-list-item-subtitle class="text-truncate">{{ c.vision || '—' }}</v-list-item-subtitle>
+            <v-list-item-subtitle class="text-truncate">
+              {{ c.institution || 'Institusi tidak tersedia' }}
+            </v-list-item-subtitle>
             <template #append>
               <v-btn icon size="small" variant="text" @click="editCandidate(c)">
                 <v-icon>mdi-pencil</v-icon>
@@ -204,17 +231,47 @@
           </div>
         </div>
 
-        <!-- Dialog edit kandidat -->
-        <v-dialog v-model="editDialog" max-width="520">
-          <v-card class="pa-3">
-            <h3 class="text-subtitle-1 mb-3">Edit Kandidat</h3>
-            <v-text-field v-model="editCand.name" label="Nama" />
-            <v-text-field v-model="editCand.vision" label="Visi" />
-            <v-text-field v-model="editCand.poster_url" label="Poster URL" />
-            <div class="d-flex justify-end mt-3">
-              <v-btn variant="text" class="mr-2" @click="editDialog = false">Batal</v-btn>
+        <!-- Updated Edit Dialog -->
+        <v-dialog v-model="editDialog" max-width="800" scrollable>
+          <v-card>
+            <v-card-title class="pa-4">
+              <span class="text-h6">Edit Kandidat</span>
+            </v-card-title>
+            <v-divider />
+            <v-card-text class="pa-4">
+              <v-text-field v-model="editCand.name" label="Nama" class="mb-3" />
+              <v-text-field v-model="editCand.institution" label="Institusi" class="mb-3" />
+              <v-text-field v-model="editCand.poster_url" label="Poster URL" class="mb-3" />
+              
+              <v-textarea
+                v-model="editCand.vision"
+                label="Visi & Misi (Markdown)"
+                rows="10"
+                auto-grow
+                hint="Gunakan format Markdown"
+                persistent-hint
+                class="mb-3"
+              />
+
+              <!-- Preview for edit dialog -->
+              <v-expansion-panels v-if="editCand.vision">
+                <v-expansion-panel>
+                  <v-expansion-panel-title>
+                    <v-icon class="mr-2">mdi-eye</v-icon>
+                    Preview Markdown
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text>
+                    <div class="markdown-preview pa-4" v-html="previewMarkdown(editCand.vision)"></div>
+                  </v-expansion-panel-text>
+                </v-expansion-panel>
+              </v-expansion-panels>
+            </v-card-text>
+            <v-divider />
+            <v-card-actions class="pa-4">
+              <v-spacer />
+              <v-btn variant="text" @click="editDialog = false">Batal</v-btn>
               <v-btn color="primary" :loading="updating" @click="updateCandidate">Simpan</v-btn>
-            </div>
+            </v-card-actions>
           </v-card>
         </v-dialog>
       </template>
@@ -225,6 +282,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import http from '@/api/http'
+import { marked } from 'marked'
 
 const hasKey = ref(!!localStorage.getItem('adminKey'))
 const adminKeyInput = ref('')
@@ -244,6 +302,7 @@ const sendResult = ref(null)
 
 const stats = ref({ total: 0, pending: 0, sent: 0, used: 0, last_sent_at: null })
 const statsLoading = ref(false)
+const editDialog = ref(false)
 
 const form = reactive({
   id: null,
@@ -412,10 +471,29 @@ async function createElection() {
 
 const newCand = reactive({ 
   name: '', 
-  vision: '', 
+  institution: '',
+  vision: '',
   posterFile: null,
   posterPreview: null
 })
+
+const editCand = reactive({ 
+  id: null, 
+  name: '', 
+  institution: '',
+  vision: '', 
+  poster_url: '' 
+})
+
+marked.setOptions({
+  breaks: true,
+  gfm: true,
+})
+
+function previewMarkdown(text) {
+  if (!text) return ''
+  return marked(text)
+}
 
 function previewImage(event) {
   const file = event.target.files?.[0] || newCand.posterFile?.[0]
@@ -437,6 +515,7 @@ async function addCandidate() {
     const formData = new FormData()
     formData.append('election', form.id)
     formData.append('name', newCand.name)
+    formData.append('institution', newCand.institution)
     formData.append('vision', newCand.vision)
     
     if (newCand.posterFile?.[0]) {
@@ -448,7 +527,9 @@ async function addCandidate() {
     })
     
     candidates.value.unshift(data)
-    newCand.name = newCand.vision = ''
+    newCand.name = ''
+    newCand.institution = ''
+    newCand.vision = ''
     newCand.posterFile = null
     newCand.posterPreview = null
   } catch (e) {
@@ -461,6 +542,7 @@ async function addCandidate() {
 function editCandidate(c) {
   editCand.id = c.id
   editCand.name = c.name
+  editCand.institution = c.institution
   editCand.vision = c.vision
   editCand.poster_url = c.poster_url
   editDialog.value = true
@@ -476,13 +558,12 @@ async function removeCandidate(id) {
   }
 }
 
-const editDialog = ref(false)
-const editCand = reactive({ id: null, name: '', vision: '', poster_url: '' })
 async function updateCandidate() {
   updating.value = true
   try {
     const { data } = await http.patch(`/api/admin/candidates/${editCand.id}/`, {
       name: editCand.name,
+      institution: editCand.institution,
       vision: editCand.vision,
       poster_url: editCand.poster_url,
     })
@@ -511,6 +592,31 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.markdown-preview {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fafafa;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.markdown-preview :deep(h1),
+.markdown-preview :deep(h2),
+.markdown-preview :deep(h3) {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.markdown-preview :deep(p) {
+  margin-bottom: 0.8em;
+}
+
+.markdown-preview :deep(ul),
+.markdown-preview :deep(ol) {
+  margin-left: 1.5em;
+  margin-bottom: 0.8em;
 }
 </style>
 
