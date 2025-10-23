@@ -190,6 +190,7 @@ async function submitVote() {
 .candidate-radio {
   flex-shrink: 0;
   margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* Remove default v-radio-group spacing */
@@ -203,5 +204,16 @@ async function submitVote() {
 
 :deep(.v-selection-control) {
   min-height: auto !important;
+  padding: 0 !important;
+}
+
+/* Fix radio button alignment to the right edge */
+:deep(.v-selection-control__wrapper) {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+:deep(.v-radio .v-selection-control__input) {
+  margin: 0 !important;
 }
 </style>
