@@ -12,7 +12,7 @@ const router = createRouter({
     { path: '/', name: 'home', component: HomeView, meta: { title: 'Beranda' } },
     { path: '/vote', name: 'vote', component: VoteView, meta: { title: 'Vote' } },
     { path: '/report', name: 'report', component: ReportView, meta: { title: 'Laporkan Kecurangan' } },
-    { path: '/admin', name: 'admin', component: AdminView, meta: { title: 'Admin Panel' } },
+    { path: '/admin-panel', name: 'admin', component: AdminView, meta: { title: 'Admin Panel' } },
     { path: '/thank-you', name: 'thankyou', component: ThankYouView, meta: { title: 'Terima Kasih' } },
     { path: '/already-voted', name: 'alreadyvoted', component: AlreadyVotedView, meta: { title: 'Anda Sudah Memilih' } },
   ],
