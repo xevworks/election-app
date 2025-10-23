@@ -61,8 +61,8 @@ class CandidateList(generics.ListAPIView):
         active = get_active_election()
         return Candidate.objects.filter(election=active) if active else Candidate.objects.none()
 
-@api_view(['POST'])
 @csrf_exempt
+@api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
 def admin_import_voters(request):
     if not require_admin(request):
@@ -139,8 +139,8 @@ def admin_import_voters(request):
         "skipped_duplicate": skipped_duplicate,
     }, status=200)
 
-@api_view(['POST'])
 @csrf_exempt
+@api_view(['POST'])
 def admin_send_tokens(request):
     if not require_admin(request):
         return Response({"detail": "Unauthorized"}, status=401)
@@ -254,8 +254,8 @@ def admin_voter_stats(request):
         "last_sent_at": last_sent,
     }, status=200)
 
-@api_view(['POST'])
 @csrf_exempt
+@api_view(['POST'])
 @throttle_classes([ScopedRateThrottle])
 def token_login(request):
     request.throttle_scope = 'token_login'
@@ -286,8 +286,8 @@ def token_login(request):
 
     return Response({"access": f"DUMMY-{email}", "election_id": active.id})
 
-@api_view(['POST'])
 @csrf_exempt
+@api_view(['POST'])
 @throttle_classes([ScopedRateThrottle])
 def cast_vote(request):
     request.throttle_scope = 'cast_vote'
@@ -383,8 +383,8 @@ class FraudReportCreate(generics.CreateAPIView):
             pass
 
 # ========== ADMIN ENDPOINTS ==========
-@api_view(['GET', 'POST'])
 @csrf_exempt
+@api_view(['GET', 'POST'])
 def admin_elections(request):
     if not require_admin(request):
         return Response({"detail": "Unauthorized"}, status=401)
@@ -401,8 +401,8 @@ def admin_elections(request):
     election = Election.objects.create(**ser.validated_data)
     return Response(ElectionSerializer(election).data, status=201)
 
-@api_view(['GET', 'PUT'])
 @csrf_exempt
+@api_view(['GET', 'PUT'])
 def admin_active_election(request):
     if not require_admin(request):
         return Response({"detail": "Unauthorized"}, status=401)
@@ -446,8 +446,8 @@ def admin_active_election(request):
     election = ser.save()
     return Response(ElectionSerializer(election).data)
 
-@api_view(['POST'])
 @csrf_exempt
+@api_view(['POST'])
 def admin_candidate_create(request):
     if not require_admin(request):
         return Response({"detail": "Unauthorized"}, status=401)
@@ -457,8 +457,8 @@ def admin_candidate_create(request):
     cand = ser.save()
     return Response(CandidateSerializer(cand).data, status=201)
 
-@api_view(['PATCH', 'DELETE'])
 @csrf_exempt
+@api_view(['PATCH', 'DELETE'])
 def admin_candidate_detail(request, pk):
     if not require_admin(request):
         return Response({"detail": "Unauthorized"}, status=401)
