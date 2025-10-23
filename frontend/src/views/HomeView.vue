@@ -2,7 +2,7 @@
   <div class="container-narrow">
     <v-sheet class="pa-2">
       <h1 class="text-h5 font-weight-bold mb-2">
-        Pemilihan Calon Ketua PPI Osaka-Nara {{ active?.year || '-' }}
+        Pemilihan Calon Ketua PPI Osaka-Nara {{ active?.year ? active.year + '/' + (active.year + 1) : '-' }}
       </h1>
       <div class="text-body-2 mb-4">
         Periode voting: <strong>{{ period }}</strong>
