@@ -1,10 +1,13 @@
 from django.urls import path
 from .views import (
     ActiveElectionView, CandidateList, results_view, token_login, cast_vote, FraudReportCreate,
-    admin_elections, admin_active_election, admin_candidate_create, admin_candidate_detail, debug_date, admin_import_voters, admin_send_tokens, admin_voter_stats
+    admin_elections, admin_active_election, admin_candidate_create, admin_candidate_detail, debug_date, admin_import_voters, admin_send_tokens, admin_voter_stats, api_root
 )
 
 urlpatterns = [
+    # API root
+    path('', api_root, name='api-root'),
+    
     # publik
     path('elections/active/', ActiveElectionView.as_view()),
     path('candidates/', CandidateList.as_view()),

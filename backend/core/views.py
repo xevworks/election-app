@@ -61,6 +61,23 @@ class CandidateList(generics.ListAPIView):
         active = get_active_election()
         return Candidate.objects.filter(election=active) if active else Candidate.objects.none()
 
+@api_view(['GET'])
+def api_root(request):
+    """API root endpoint"""
+    return Response({
+        "message": "Election API PPI Osaka-Nara",
+        "version": "1.0",
+        "endpoints": {
+            "active_election": "/api/elections/active/",
+            "candidates": "/api/candidates/",
+            "auth": "/api/auth/token-login/",
+            "vote": "/api/vote/",
+            "results": "/api/results/",
+            "reports": "/api/reports/",
+            "admin": "/api/admin/",
+        }
+    })
+
 @csrf_exempt
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
