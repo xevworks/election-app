@@ -52,6 +52,15 @@ class ActiveElectionView(generics.RetrieveAPIView):
             raise generics.exceptions.NotFound("Tidak ada election aktif.")
         return obj
 
+class LatestElectionView(generics.RetrieveAPIView):
+    """Get latest election regardless of date"""
+    serializer_class = ElectionSerializer
+    def get_object(self):
+        obj = Election.objects.order_by('-year', '-id').first()
+        if obj is None:
+            raise generics.exceptions.NotFound("Tidak ada election.")
+        return obj
+
 class CandidateList(generics.ListAPIView):
     serializer_class = CandidateSerializer
     def get_queryset(self):

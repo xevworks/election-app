@@ -6,8 +6,12 @@
       </h1>
       <div class="text-body-2 mb-4">
         Periode voting: <strong>{{ period }}</strong>
-        <div v-if="active?.is_open" class="text-success">Status: Sedang dibuka</div>
-        <div v-else class="text-error">Status: Ditutup</div>
+        <div v-if="active?.is_open" class="text-success font-weight-bold">
+          ✓ Status: Voting Sedang Dibuka
+        </div>
+        <div v-else class="text-error font-weight-bold">
+          ✗ Status: Voting Ditutup
+        </div>
       </div>
 
       <h2 class="text-subtitle-1 mb-2">Kandidat Calon Ketua PPI Osaka-Nara</h2>
@@ -46,15 +50,21 @@ const period = computed(() =>
 )
 
 onMounted(async () => {
-  const { data } = await http.get('/api/elections/active/')
-  active.value = data
+  try {
+    // Changed from /active/ to /latest/ to get latest election regardless of date
+    const { data } = await http.get('/api/elections/latest/')
+    active.value = data
 
-  const { data: cds } = await http.get('/api/candidates/', { params: { election: data.id } })
-  candidates.value = cds
+    const { data: cds } = await http.get('/api/candidates/', { params: { election: data.id } })
+    candidates.value = cds
 
-  if (data.show_results) {
-    const { data: res } = await http.get('/api/results/', { params: { election: data.id } })
-    results.value = res
+    if (data.show_results) {
+      const { data: res } = await http.get('/api/results/', { params: { election: data.id } })
+      results.value = res
+    }
+  } catch (error) {
+    console.error('Error loading election data:', error)
+    // Optionally show error message to user
   }
 })
 </script>
