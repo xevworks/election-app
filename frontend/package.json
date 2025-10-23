@@ -1,8 +1,9 @@
 {
-  "name": "frontend",
+  "name": "election-ppi-osaka-nara",
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "description": "Sistem pemilihan online untuk PPI Osaka-Nara",
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
   },
