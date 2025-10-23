@@ -46,10 +46,28 @@
         <h2 class="text-subtitle-1 mb-2">Kandidat</h2>
         <v-form @submit.prevent="addCandidate" class="mb-3">
           <v-row dense>
-            <v-col cols="12" md="4"><v-text-field v-model="newCand.name" label="Nama kandidat" required /></v-col>
-            <v-col cols="12" md="4"><v-text-field v-model="newCand.vision" label="Visi (singkat)" /></v-col>
-            <v-col cols="12" md="4"><v-text-field v-model="newCand.poster_url" label="Poster URL (gambar)" /></v-col>
+            <v-col cols="12" md="4">
+              <v-text-field v-model="newCand.name" label="Nama kandidat" required />
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field v-model="newCand.vision" label="Visi (singkat)" />
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-file-input 
+                v-model="newCand.posterFile" 
+                label="Upload Poster (JPG/PNG)" 
+                accept="image/*"
+                prepend-icon="mdi-camera"
+                @change="previewImage"
+              />
+            </v-col>
           </v-row>
+          <v-img 
+            v-if="newCand.posterPreview" 
+            :src="newCand.posterPreview" 
+            max-height="200" 
+            class="mb-3 rounded"
+          />
           <v-btn type="submit" color="primary" :loading="adding">Tambah Kandidat</v-btn>
         </v-form>
 
@@ -392,19 +410,47 @@ async function createElection() {
   }
 }
 
-const newCand = reactive({ name: '', vision: '', poster_url: '' })
+const newCand = reactive({ 
+  name: '', 
+  vision: '', 
+  posterFile: null,
+  posterPreview: null
+})
+
+function previewImage(event) {
+  const file = event.target.files?.[0] || newCand.posterFile?.[0]
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      newCand.posterPreview = e.target.result
+    }
+    reader.readAsDataURL(file)
+  } else {
+    newCand.posterPreview = null
+  }
+}
+
 async function addCandidate() {
   if (!form.id) return alert('Buat/isi election dulu.')
   adding.value = true
   try {
-    const { data } = await http.post('/api/admin/candidates/', {
-      election: form.id,
-      name: newCand.name,
-      vision: newCand.vision,
-      poster_url: newCand.poster_url,
+    const formData = new FormData()
+    formData.append('election', form.id)
+    formData.append('name', newCand.name)
+    formData.append('vision', newCand.vision)
+    
+    if (newCand.posterFile?.[0]) {
+      formData.append('poster', newCand.posterFile[0])
+    }
+
+    const { data } = await http.post('/api/admin/candidates/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
     })
+    
     candidates.value.unshift(data)
-    newCand.name = newCand.vision = newCand.poster_url = ''
+    newCand.name = newCand.vision = ''
+    newCand.posterFile = null
+    newCand.posterPreview = null
   } catch (e) {
     alert('Gagal menambah kandidat.')
   } finally {

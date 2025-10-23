@@ -14,6 +14,7 @@ class Candidate(models.Model):
     election = models.ForeignKey(Election, on_delete=models.CASCADE, related_name='candidates')
     name = models.CharField(max_length=200)
     vision = models.TextField(blank=True)
+    poster = models.ImageField(upload_to='candidates/', blank=True, null=True)
     poster_url = models.URLField(blank=True)
 
     def __str__(self):

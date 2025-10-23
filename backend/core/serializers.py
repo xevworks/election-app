@@ -2,9 +2,28 @@ from rest_framework import serializers
 from .models import Election, Candidate, Vote, FraudReport
 
 class CandidateSerializer(serializers.ModelSerializer):
+    poster_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = Candidate
         fields = ['id', 'name', 'vision', 'poster_url']
+    
+    def get_poster_url(self, obj):
+        request = self.context.get('request')
+        if obj.poster:
+            if request:
+                return request.build_absolute_uri(obj.poster.url)
+            return obj.poster.url
+        return obj.poster_url or ''
+
+class CandidateAdminCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Candidate
+        fields = ['id', 'election', 'name', 'vision', 'poster', 'poster_url']
+        extra_kwargs = {
+            'poster': {'required': False},
+            'poster_url': {'required': False}
+        }
 
 class ElectionSerializer(serializers.ModelSerializer):
     class Meta:
