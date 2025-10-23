@@ -307,25 +307,25 @@ async function doImportCsv() {
 
 async function fetchData() {
   try {
-    // coba get active; kalau 404, biarkan form kosong
-    const { data: active } = await http.get('/api/admin/election/active/')
-    form.id = active.id
-    form.year = active.year
-    form.start_date = active.start_date
-    form.end_date = active.end_date
-    form.is_open = active.is_open
-    form.show_results = active.show_results
+    // Changed: Use /latest/ instead of /active/ to get latest election regardless of period
+    const { data: latest } = await http.get('/api/elections/latest/')
+    form.id = latest.id
+    form.year = latest.year
+    form.start_date = latest.start_date
+    form.end_date = latest.end_date
+    form.is_open = latest.is_open
+    form.show_results = latest.show_results
 
-    const { data: cds } = await http.get('/api/candidates/', { params: { election: active.id } })
+    const { data: cds } = await http.get('/api/candidates/', { params: { election: latest.id } })
     candidates.value = cds
     await fetchStats()
   } catch (e) {
-    // tidak ada active election atau unauthorized
+    // tidak ada election atau unauthorized
     if (e.response?.status === 401) {
       alert('Admin key tidak valid.')
       clearKey()
     } else if (e.response?.status === 404) {
-      // Tidak ada election aktif, kosongkan form
+      // Tidak ada election sama sekali, kosongkan form untuk buat baru
       form.id = null
       form.year = new Date().getFullYear()
       form.start_date = ''
@@ -361,6 +361,7 @@ async function saveElection() {
     form.show_results = data.show_results
 
     alert('Perubahan election disimpan.')
+    await fetchStats() // Refresh stats after save
   } catch (e) {
     console.error('Save election error:', e.response?.data || e.message)
     alert(`Gagal menyimpan election: ${e.response?.data?.detail || e.message}`)
@@ -372,7 +373,7 @@ async function saveElection() {
 async function createElection() {
   try {
     const { data } = await http.post('/api/admin/elections/', {
-      year: form.year,
+      year: form.year || new Date().getFullYear(),
       start_date: form.start_date,
       end_date: form.end_date,
       is_open: false,
@@ -384,6 +385,7 @@ async function createElection() {
     form.end_date = data.end_date
     form.is_open = data.is_open
     form.show_results = data.show_results
+    candidates.value = []
     alert('Election baru dibuat.')
   } catch (e) {
     alert('Gagal membuat election.')
@@ -465,3 +467,4 @@ onMounted(() => {
   white-space: nowrap;
 }
 </style>
+

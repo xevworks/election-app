@@ -78,6 +78,7 @@ def api_root(request):
         "version": "1.0",
         "endpoints": {
             "active_election": "/api/elections/active/",
+            "latest_election": "/api/elections/latest/",
             "candidates": "/api/candidates/",
             "auth": "/api/auth/token-login/",
             "vote": "/api/vote/",
