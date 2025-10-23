@@ -3,7 +3,7 @@
     <v-app-bar density="comfortable" elevation="1">
       <v-app-bar-title>
         <img src="https://osakanara.ppijepang.org/wp-content/uploads/sites/5/2023/12/Logo-2.svg" alt="PPI Osaka-Nara Logo" style="height: 40px; vertical-align: middle;" />
-        KPU
+        | Komisi Pemilihan Umum (KPU)
       </v-app-bar-title>
       <v-spacer />
       <v-btn variant="text" :to="{ name: 'home' }">Beranda</v-btn>
