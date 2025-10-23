@@ -9,6 +9,7 @@ WORKDIR /code
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
+    netcat-traditional \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -17,11 +18,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 COPY . .
 
-# Don't run collectstatic here - will run in entrypoint
-# RUN python manage.py collectstatic --noinput
+# Make entrypoint executable
+RUN chmod +x /code/entrypoint.sh
 
 EXPOSE 8000
 
-# Run collectstatic and then start gunicorn
-CMD python manage.py collectstatic --noinput && \
-    gunicorn --bind 0.0.0.0:8000 --workers 2 --threads 4 --worker-class gthread --timeout 120 backend.wsgi:application
+ENTRYPOINT ["/code/entrypoint.sh"]
