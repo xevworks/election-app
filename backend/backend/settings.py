@@ -48,6 +48,7 @@ REST_FRAMEWORK = {
         # bebas kamu ubah; ini contoh dev-friendly
         "token_login": "20/minute",
         "cast_vote": "10/minute",
+        "reports": "5/hour",
     },
 }
 

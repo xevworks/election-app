@@ -397,6 +397,29 @@ class FraudReportCreate(generics.CreateAPIView):
     serializer_class = FraudReportSerializer
     queryset = FraudReport.objects.all()
 
+    @throttle_classes([ScopedRateThrottle])
+    def post(self, request, *args, **kwargs):
+        request.throttle_scope = 'reports'
+        return super().post(request, *args, **kwargs)
+    
+    def perform_create(self, serializer):
+        obj = serializer.save()
+        try:
+            send_mail(
+                subject=f"[KPU] Laporan kecurangan dari {obj.name}",
+                message=(
+                    f"Nama   : {obj.name}\n"
+                    f"Email  : {obj.email}\n"
+                    f"Waktu  : {obj.created_at}\n\n"
+                    f"Pesan:\n{obj.message}"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[settings.SUPPORT_EMAIL],
+                fail_silently=True,  # prod: True; dev: bisa False untuk debug
+            )
+        except Exception:
+            pass
+
 # ========== ADMIN ENDPOINTS ==========
 @api_view(['GET', 'POST'])
 def admin_elections(request):
