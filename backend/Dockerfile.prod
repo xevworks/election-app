@@ -7,9 +7,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /code
 
+# Install system dependencies including curl for healthcheck
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
     netcat-traditional \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -18,8 +20,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 COPY . .
 
-# Make entrypoint executable
-RUN chmod +x /code/entrypoint.sh
+# Ensure entrypoint has Unix line endings and is executable
+RUN sed -i 's/\r$//' /code/entrypoint.sh && \
+    chmod +x /code/entrypoint.sh
 
 EXPOSE 8000
 
