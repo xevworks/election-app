@@ -20,15 +20,17 @@
           <v-radio-group v-model="selectedCandidate">
             <template v-for="c in candidates" :key="c.id">
               <v-card class="mb-2 rounded-xl" variant="tonal">
-                <v-card-text class="d-flex align-center">
-                  <v-avatar size="56" class="mr-3">
-                    <v-img :src="c.poster_url || fallbackPoster" />
-                  </v-avatar>
-                  <div class="flex-grow-1">
-                    <div class="text-subtitle-2">{{ c.name }}</div>
-                    <div class="text-caption">{{ c.vision || '—' }}</div>
+                <v-card-text class="candidate-card-content">
+                  <div class="candidate-info">
+                    <v-avatar size="56" class="mr-3">
+                      <v-img :src="c.poster_url || fallbackPoster" cover />
+                    </v-avatar>
+                    <div class="candidate-details">
+                      <div class="text-subtitle-2 font-weight-bold">{{ c.name }}</div>
+                      <div class="text-caption text-medium-emphasis">{{ c.vision || '—' }}</div>
+                    </div>
                   </div>
-                  <v-radio :value="c.id" />
+                  <v-radio :value="c.id" class="candidate-radio" />
                 </v-card-text>
               </v-card>
             </template>
@@ -163,3 +165,43 @@ async function submitVote() {
   }
 }
 </script>
+
+<style scoped>
+.candidate-card-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px !important;
+}
+
+.candidate-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0; /* Allow flex item to shrink */
+}
+
+.candidate-details {
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
+}
+
+.candidate-radio {
+  flex-shrink: 0;
+  margin: 0 !important;
+}
+
+/* Remove default v-radio-group spacing */
+:deep(.v-radio-group) {
+  margin-top: 0 !important;
+}
+
+:deep(.v-selection-control-group) {
+  gap: 8px !important;
+}
+
+:deep(.v-selection-control) {
+  min-height: auto !important;
+}
+</style>
