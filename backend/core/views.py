@@ -95,7 +95,7 @@ def admin_import_voters(request):
     reader = csv.DictReader(f) if has_header else csv.DictReader(f, fieldnames=['email'])
 
     created, updated, skipped_invalid, skipped_duplicate = 0, 0, 0, 0
-    seen_in_file = set()  # hindari duplikat di file yang sama
+    seen_in_file = set()
 
     for row in reader:
         email = _normalize_email(row.get('email'))
@@ -119,7 +119,7 @@ def admin_import_voters(request):
                 vt = vt_qs.first()
                 vt.token = generate_token()
                 vt.used = False
-                vt.emailed_at = None  # reset status kirim, karena token baru
+                vt.emailed_at = None
                 vt.save(update_fields=['token', 'used', 'emailed_at'])
                 updated += 1
             else:
@@ -160,14 +160,12 @@ def admin_send_tokens(request):
     if total_candidates == 0:
         return Response({"detail": "Tidak ada token yang perlu dikirim."}, status=200)
 
-    messages = []
     election_name = f"Election {election.year} PPI Osaka–Nara"
     subject = f"Token Voting PPI Osaka–Nara {election.year}"
     vote_link = settings.FRONTEND_VOTE_URL
     vote_deadline = election.end_date.strftime('%Y-%m-%d')
     support_email = settings.SUPPORT_EMAIL
 
-    # Kirim satu per satu agar bisa tandai keberhasilan per email
     sent = 0
     errors = 0
     failed_list = []
@@ -218,7 +216,7 @@ def admin_send_tokens(request):
         "attempted": total_candidates,
         "sent": sent,
         "failed": errors,
-        "failed_list": failed_list[:50],  # batasi agar respons tidak terlalu besar
+        "failed_list": failed_list[:50],
         "resend_all": resend_all,
     }, status=200)
 
@@ -268,7 +266,6 @@ def token_login(request):
     except VoterToken.DoesNotExist:
         return Response({"code":"INVALID_CREDENTIALS","detail":"Email/token tidak valid."}, status=400)
 
-    # CEK SUDAH VOTE? (Check this BEFORE checking is_open)
     voted = Vote.objects.filter(election=active, email=email).select_related('candidate').first()
     if vt.used or voted:
         return Response({
@@ -279,11 +276,9 @@ def token_login(request):
             "candidate_id": voted.candidate_id if voted else None
         }, status=400)
 
-    # Check if voting is still open AFTER checking if already voted
     if not active.is_open:
         return Response({"code":"ELECTION_CLOSED","detail":"Voting sudah ditutup."}, status=400)
 
-    # token untuk sesi (dummy)
     return Response({"access": f"DUMMY-{email}", "election_id": active.id})
 
 @api_view(['POST'])
@@ -303,8 +298,15 @@ def cast_vote(request):
     except VoterToken.DoesNotExist:
         return Response({"code":"INVALID_CREDENTIALS","detail":"Email/token tidak valid."}, status=400)
 
-    if vt.used or Vote.objects.filter(election=active, email=email).exists():
-        return Response({"code":"ALREADY_VOTED","detail":"Anda sudah melakukan voting."}, status=400)
+    existing_vote = Vote.objects.filter(election=active, email=email).select_related('candidate').first()
+    if vt.used or existing_vote:
+        return Response({
+            "code":"ALREADY_VOTED",
+            "detail":"Anda sudah melakukan voting.",
+            "election_id": active.id,
+            "voted_for": existing_vote.candidate.name if existing_vote else None,
+            "candidate_id": existing_vote.candidate_id if existing_vote else None
+        }, status=400)
 
     try:
         cand = Candidate.objects.get(id=candidate_id, election=active)
@@ -345,54 +347,6 @@ def debug_date(request):
         "timezone": settings.TIME_ZONE,
     })
 
-@api_view(['POST'])
-def token_login(request):
-    email = request.data.get('email', '').strip().lower()
-    token = request.data.get('token', '').strip()
-    active = get_active_election()
-    if not active or not active.is_open:
-        return Response({"detail": "Voting belum dibuka."}, status=400)
-
-    try:
-        vt = VoterToken.objects.get(email=email, token=token, election=active)
-    except VoterToken.DoesNotExist:
-        return Response({"detail": "Email/token tidak valid."}, status=400)
-
-    # “Access” dummy (supaya frontend bisa lanjut). Produksi nanti pakai JWT.
-    return Response({"access": f"DUMMY-{email}"})
-
-@api_view(['POST'])
-def cast_vote(request):
-    email = request.data.get('email', '').strip().lower()
-    token = request.data.get('token', '').strip()
-    candidate_id = request.data.get('candidate_id')
-
-    active = get_active_election()
-    if not active or not active.is_open:
-        return Response({"detail": "Voting belum dibuka."}, status=400)
-
-    try:
-        vt = VoterToken.objects.get(email=email, token=token, election=active)
-    except VoterToken.DoesNotExist:
-        return Response({"detail": "Email/token tidak valid."}, status=400)
-
-    if vt.used:
-        return Response({"detail": "Anda sudah melakukan voting."}, status=400)
-
-    try:
-        cand = Candidate.objects.get(id=candidate_id, election=active)
-    except Candidate.DoesNotExist:
-        return Response({"detail": "Kandidat tidak ditemukan."}, status=404)
-
-    # Cegah double vote per email
-    if Vote.objects.filter(election=active, email=email).exists():
-        return Response({"detail": "Anda sudah melakukan voting."}, status=400)
-
-    Vote.objects.create(election=active, candidate=cand, email=email)
-    vt.used = True
-    vt.save(update_fields=['used'])
-    return Response({"detail": "Vote tercatat."}, status=201)
-
 class FraudReportCreate(generics.CreateAPIView):
     serializer_class = FraudReportSerializer
     queryset = FraudReport.objects.all()
@@ -403,6 +357,7 @@ class FraudReportCreate(generics.CreateAPIView):
         return super().post(request, *args, **kwargs)
     
     def perform_create(self, serializer):
+        from django.core.mail import send_mail
         obj = serializer.save()
         try:
             send_mail(
@@ -415,7 +370,7 @@ class FraudReportCreate(generics.CreateAPIView):
                 ),
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[settings.SUPPORT_EMAIL],
-                fail_silently=True,  # prod: True; dev: bisa False untuk debug
+                fail_silently=True,
             )
         except Exception:
             pass
@@ -430,7 +385,6 @@ def admin_elections(request):
         qs = Election.objects.all().order_by('-year')
         return Response(ElectionSerializer(qs, many=True).data)
 
-    # POST: create election baru (default is_open False, show_results False)
     data = request.data.copy()
     data.setdefault('is_open', False)
     data.setdefault('show_results', False)
@@ -459,11 +413,9 @@ def admin_active_election(request):
             }, status=200)
         return Response(ElectionSerializer(active).data)
 
-    # PUT: update existing election or create if ?id= provided
     election_id = request.query_params.get('id')
     
     if election_id:
-        # Update specific election by ID
         try:
             election = Election.objects.get(pk=election_id)
         except Election.DoesNotExist:
@@ -474,15 +426,12 @@ def admin_active_election(request):
         election = ser.save()
         return Response(ElectionSerializer(election).data)
     
-    # Update active election or create new one if no active election exists
     if not active:
-        # No active election, create new one
         ser = ElectionAdminUpdateSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
         election = Election.objects.create(**ser.validated_data)
         return Response(ElectionSerializer(election).data, status=201)
     
-    # Update existing active election
     ser = ElectionAdminUpdateSerializer(active, data=request.data, partial=True)
     ser.is_valid(raise_exception=True)
     election = ser.save()
@@ -513,6 +462,5 @@ def admin_candidate_detail(request, pk):
         cand = ser.save()
         return Response(CandidateSerializer(cand).data)
 
-    # DELETE
     cand.delete()
     return Response(status=204)
