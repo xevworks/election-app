@@ -50,6 +50,31 @@
             </div>
           </div>
 
+          <!-- Download PDF Section -->
+          <v-card class="mb-4 rounded-lg" elevation="1" color="blue-lighten-5">
+            <v-card-text class="d-flex align-center justify-space-between flex-wrap">
+              <div class="d-flex align-center">
+                <v-icon color="primary" size="large" class="mr-3">mdi-file-pdf-box</v-icon>
+                <div>
+                  <div class="text-subtitle-1 font-weight-medium">Panduan Pemilih</div>
+                  <div class="text-caption text-medium-emphasis">
+                    Download panduan pemilihan
+                  </div>
+                </div>
+              </div>
+              <v-btn
+                color="primary"
+                variant="elevated"
+                prepend-icon="mdi-download"
+                :href="pdfUrl"
+                target="_blank"
+                class="mt-2 mt-sm-0"
+              >
+                Download PDF
+              </v-btn>
+            </v-card-text>
+          </v-card>
+
           <h2 class="text-subtitle-1 mb-2">Kandidat Calon Ketua PPI Osaka-Nara</h2>
           <p class="text-body-2 text-medium-emphasis mb-3">
             Klik kartu kandidat untuk melihat detail visi & misi lengkap
@@ -102,6 +127,8 @@ const fallbackPoster = 'https://via.placeholder.com/600x400?text=Poster+Kandidat
 
 const detailDialog = ref(false)
 const selectedCandidate = ref(null)
+
+const pdfUrl = ref('https://github.com/xevworks/election-app/releases/download/v1.0.0/user-manual.pdf')
 
 const period = computed(() =>
   active.value ? `${active.value.start_date} s/d ${active.value.end_date}` : '—',
