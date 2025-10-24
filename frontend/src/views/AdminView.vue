@@ -286,7 +286,7 @@ import { marked } from 'marked'
 
 const hasKey = ref(!!localStorage.getItem('adminKey'))
 const adminKeyInput = ref('')
-const fallbackPoster = 'https://via.placeholder.com/120x120?text=Poster'
+const fallbackPoster = 'https://placecats.com/poppy/300/200'
 
 const saving = ref(false)
 const adding = ref(false)

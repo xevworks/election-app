@@ -62,7 +62,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const fallbackPoster = 'https://via.placeholder.com/600x400?text=Poster+Kandidat'
+const fallbackPoster = 'https://placecats.com/poppy/300/200'
 
 const dialog = computed({
   get: () => props.modelValue,

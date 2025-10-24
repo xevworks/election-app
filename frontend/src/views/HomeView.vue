@@ -91,12 +91,18 @@
 
           <v-divider class="my-6" />
 
-          <h2 class="text-subtitle-1 mb-2">Hasil Voting (jika dirilis KPU)</h2>
-          <div v-if="active?.show_results && results?.length">
-            <ResultsBarChart :data="results" />
-          </div>
-          <div v-else class="text-body-2 text-medium-emphasis">
-            Hasil belum dirilis.
+          <!-- Results Section with Button to Show Overlay -->
+          <div class="d-flex align-center justify-space-between mb-2">
+            <h2 class="text-subtitle-1">Hasil Voting</h2>
+            <v-btn
+              v-if="active?.show_results && results?.length"
+              color="amber-darken-1"
+              variant="elevated"
+              prepend-icon="mdi-trophy"
+              @click="showResultsOverlay = true"
+            >
+              Lihat Hasil Resmi
+            </v-btn>
           </div>
         </template>
       </div>
@@ -107,6 +113,14 @@
       v-model="detailDialog" 
       :candidate="selectedCandidate"
     />
+
+    <!-- Results Overlay -->
+    <VotingResultsOverlay
+      v-model="showResultsOverlay"
+      :results="results"
+      :candidates="candidates"
+      :election-year="active?.year ? active.year + '/' + (active.year + 1) : '-'"
+    />
   </div>
 </template>
 
@@ -116,16 +130,18 @@ import http from '@/api/http'
 import CandidateCard from '@/components/CandidateCard.vue'
 import CandidateDetailDialog from '@/components/CandidateDetailDialog.vue'
 import ResultsBarChart from '@/components/ResultsBarChart.vue'
+import VotingResultsOverlay from '@/components/VotingResultsOverlay.vue'
 
 const active = ref(null)
 const candidates = ref([])
 const results = ref([])
 const loading = ref(true)
 const error = ref(null)
-const fallbackPoster = 'https://via.placeholder.com/600x400?text=Poster+Kandidat'
+const fallbackPoster = 'https://placecats.com/poppy/300/200'
 
 const detailDialog = ref(false)
 const selectedCandidate = ref(null)
+const showResultsOverlay = ref(false)
 
 const pdfUrl = 'https://election-ppion.muhammadalqaaf.com/api/user-manual/'
 

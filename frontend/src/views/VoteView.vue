@@ -65,7 +65,7 @@ const loadingCandidates = ref(false)
 const candidates = ref([])
 const selectedCandidate = ref(null)
 const submitting = ref(false)
-const fallbackPoster = 'https://via.placeholder.com/120x120?text=Poster'
+const fallbackPoster = 'https://placecats.com/poppy/300/200'
 const notice = ref('')
 
 function getNameById(id) {
