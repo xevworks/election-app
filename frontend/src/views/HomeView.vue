@@ -127,7 +127,7 @@ const fallbackPoster = 'https://via.placeholder.com/600x400?text=Poster+Kandidat
 const detailDialog = ref(false)
 const selectedCandidate = ref(null)
 
-const pdfUrl = 'https://election-ppion.muhammadalqaaf.com/docs/user-manual.pdf'
+const pdfUrl = 'https://election-ppion.muhammadalqaaf.com/api/user-manual/'
 
 const period = computed(() =>
   active.value ? `${active.value.start_date} s/d ${active.value.end_date}` : '—',

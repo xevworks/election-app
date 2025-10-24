@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     ActiveElectionView, LatestElectionView, CandidateList, results_view, token_login, cast_vote, FraudReportCreate,
-    admin_elections, admin_active_election, admin_candidate_create, admin_candidate_detail, debug_date, admin_import_voters, admin_send_tokens, admin_voter_stats, api_root
+    admin_elections, admin_active_election, admin_candidate_create, admin_candidate_detail, debug_date, admin_import_voters, admin_send_tokens, admin_voter_stats, api_root, serve_user_manual
 )
 
 urlpatterns = [
@@ -16,6 +16,7 @@ urlpatterns = [
     path('auth/token-login/', token_login),
     path('vote/', cast_vote),
     path('reports/', FraudReportCreate.as_view()),
+    path('user-manual/', serve_user_manual),
 
     # admin (KPU)
     path('admin/elections/', admin_elections),                 # GET list, POST create

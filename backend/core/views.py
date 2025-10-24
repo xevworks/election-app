@@ -7,7 +7,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.utils.timezone import now, localtime
 from django.db.models import Count, Max
-import csv, io, re
+import csv, io, re, os
+from django.http import FileResponse
 from django.core.validators import EmailValidator
 from django.core.mail import EmailMultiAlternatives, get_connection
 from django.views.decorators.csrf import csrf_exempt
@@ -87,6 +88,17 @@ def api_root(request):
             "admin": "/api/admin/",
         }
     })
+
+@api_view(['GET'])
+def serve_user_manual(request):
+    file_path = os.path.join(os.path.dirname(__file__), '..', 'docs', 'user-manual.pdf')
+    
+    if not os.path.exists(file_path):
+        return Response({'error': 'File not found'}, status=404)
+    
+    response = FileResponse(open(file_path, 'rb'), content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="user-manual.pdf"'
+    return response
 
 @csrf_exempt
 @api_view(['POST'])
