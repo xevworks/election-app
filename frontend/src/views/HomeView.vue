@@ -50,7 +50,7 @@
             </div>
           </div>
 
-          <!-- Download PDF Section -->
+          <!-- View PDF Section -->
           <v-card class="mb-4 rounded-lg" elevation="1" color="blue-lighten-5">
             <v-card-text class="d-flex align-center justify-space-between flex-wrap">
               <div class="d-flex align-center">
@@ -58,19 +58,18 @@
                 <div>
                   <div class="text-subtitle-1 font-weight-medium">Panduan Pemilih</div>
                   <div class="text-caption text-medium-emphasis">
-                    Download panduan pemilihan
+                    Baca panduan lengkap untuk voter
                   </div>
                 </div>
               </div>
               <v-btn
                 color="primary"
                 variant="elevated"
-                prepend-icon="mdi-download"
-                :href="pdfUrl"
-                target="_blank"
+                prepend-icon="mdi-open-in-new"
+                @click="openPDF"
                 class="mt-2 mt-sm-0"
               >
-                Download PDF
+                Buka Panduan
               </v-btn>
             </v-card-text>
           </v-card>
@@ -128,7 +127,7 @@ const fallbackPoster = 'https://via.placeholder.com/600x400?text=Poster+Kandidat
 const detailDialog = ref(false)
 const selectedCandidate = ref(null)
 
-const pdfUrl = ref('https://github.com/xevworks/election-app/releases/download/v1.0.0/user-manual.pdf')
+const pdfUrl = 'https://election-ppion.muhammadalqaaf.com/docs/user-manual.pdf'
 
 const period = computed(() =>
   active.value ? `${active.value.start_date} s/d ${active.value.end_date}` : '—',
@@ -137,6 +136,10 @@ const period = computed(() =>
 function openDetail(candidate) {
   selectedCandidate.value = candidate
   detailDialog.value = true
+}
+
+function openPDF() {
+  window.open(pdfUrl, '_blank', 'noopener,noreferrer')
 }
 
 onMounted(async () => {
