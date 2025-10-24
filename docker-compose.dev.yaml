@@ -1,0 +1,61 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: election-db-dev
+    restart: unless-stopped
+    ports:
+      - "5432:5432"  # Expose for local access
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: election_db
+      POSTGRES_USER: election_user
+      POSTGRES_PASSWORD: election_dev_pass
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: election-backend-dev
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/code  # Mount source code for hot-reload
+      - backend_static:/code/staticfiles
+      - backend_media:/code/media
+    env_file:
+      - ./backend/.env.development
+    depends_on:
+      - db
+    networks:
+      - app-network
+    command: python manage.py runserver 0.0.0.0:8000
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: election-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "5173:5173"  # Vite default port
+    volumes:
+      - ./frontend:/app  # Mount source code for hot-reload
+      - /app/node_modules  # Prevent overwriting node_modules
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    networks:
+      - app-network
+    command: npm run dev
+
+volumes:
+  postgres_dev_data:
+  backend_static:
+  backend_media:
+
+networks:
+  app-network:
+    driver: bridge
