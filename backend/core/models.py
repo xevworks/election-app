@@ -1,14 +1,20 @@
 from django.db import models
+from django.utils import timezone
 
 class Election(models.Model):
     year = models.IntegerField()
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
     is_open = models.BooleanField(default=False)
     show_results = models.BooleanField(default=False)  # KPU trigger manual
 
     def __str__(self):
         return f"Election {self.year}"
+    
+    def is_active(self):
+        """Check if election is currently active based on datetime"""
+        now = timezone.now()
+        return self.start_date <= now <= self.end_date
 
 class Candidate(models.Model):
     election = models.ForeignKey(Election, on_delete=models.CASCADE, related_name='candidates')

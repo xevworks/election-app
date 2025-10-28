@@ -40,15 +40,24 @@
           <h1 class="text-h5 font-weight-bold mb-2">
             Pemilihan Calon Ketua PPI Osaka-Nara {{ active?.year ? active.year + '/' + (active.year + 1) : '-' }}
           </h1>
-          <div class="text-body-2 mb-4">
-            Periode voting: <strong>{{ period }}</strong>
-            <div v-if="active?.is_open" class="text-success font-weight-bold">
-              ✓ Status: Voting Sedang Dibuka
-            </div>
-            <div v-else class="text-error font-weight-bold">
-              ✗ Status: Voting Ditutup
-            </div>
-          </div>
+          <v-card class="mb-4 rounded-lg" elevation="1" color="blue-grey-lighten-5">
+            <v-card-text>
+              <div class="text-subtitle-2 font-weight-bold mb-2">
+                <v-icon class="mr-2">mdi-calendar-clock</v-icon>
+                Periode Voting
+              </div>
+              <div class="text-body-2 mb-3" style="line-height: 1.6;">
+                {{ period }}
+              </div>
+              <v-chip v-if="active?.is_open" color="success" variant="elevated" prepend-icon="mdi-check-circle"
+                size="small">
+                Voting Sedang Dibuka
+              </v-chip>
+              <v-chip v-else color="error" variant="elevated" prepend-icon="mdi-close-circle" size="small">
+                Voting Ditutup
+              </v-chip>
+            </v-card-text>
+          </v-card>
 
           <!-- View PDF Section -->
           <v-card class="mb-4 rounded-lg" elevation="1" color="blue-lighten-5">
@@ -62,13 +71,8 @@
                   </div>
                 </div>
               </div>
-              <v-btn
-                color="primary"
-                variant="elevated"
-                prepend-icon="mdi-open-in-new"
-                @click="openPDF"
-                class="mt-2 mt-sm-0"
-              >
+              <v-btn color="primary" variant="elevated" prepend-icon="mdi-open-in-new" @click="openPDF"
+                class="mt-2 mt-sm-0">
                 Buka Panduan
               </v-btn>
             </v-card-text>
@@ -80,12 +84,8 @@
           </p>
           <v-row dense>
             <v-col v-for="c in candidates" :key="c.id" cols="12" sm="6">
-              <CandidateCard 
-                :name="c.name" 
-                :institution="c.institution"
-                :poster-url="c.poster_url || fallbackPoster"
-                @click="openDetail(c)"
-              />
+              <CandidateCard :name="c.name" :institution="c.institution" :poster-url="c.poster_url || fallbackPoster"
+                @click="openDetail(c)" />
             </v-col>
           </v-row>
 
@@ -94,13 +94,8 @@
           <!-- Results Section with Button to Show Overlay -->
           <div class="d-flex align-center justify-space-between mb-2">
             <h2 class="text-subtitle-1">Hasil Voting</h2>
-            <v-btn
-              v-if="active?.show_results && results?.length"
-              color="amber-darken-1"
-              variant="elevated"
-              prepend-icon="mdi-trophy"
-              @click="showResultsOverlay = true"
-            >
+            <v-btn v-if="active?.show_results && results?.length" color="amber-darken-1" variant="elevated"
+              prepend-icon="mdi-trophy" @click="showResultsOverlay = true">
               Lihat Hasil Resmi
             </v-btn>
           </div>
@@ -109,18 +104,11 @@
     </v-sheet>
 
     <!-- Candidate Detail Dialog -->
-    <CandidateDetailDialog 
-      v-model="detailDialog" 
-      :candidate="selectedCandidate"
-    />
+    <CandidateDetailDialog v-model="detailDialog" :candidate="selectedCandidate" />
 
     <!-- Results Overlay -->
-    <VotingResultsOverlay
-      v-model="showResultsOverlay"
-      :results="results"
-      :candidates="candidates"
-      :election-year="active?.year ? active.year + '/' + (active.year + 1) : '-'"
-    />
+    <VotingResultsOverlay v-model="showResultsOverlay" :results="results" :candidates="candidates"
+      :election-year="active?.year ? active.year + '/' + (active.year + 1) : '-'" />
   </div>
 </template>
 
@@ -145,9 +133,35 @@ const showResultsOverlay = ref(false)
 
 const pdfUrl = 'https://election-ppion.muhammadalqaaf.com/api/user-manual/'
 
-const period = computed(() =>
-  active.value ? `${active.value.start_date} s/d ${active.value.end_date}` : '—',
-)
+// Format datetime dengan lebih readable
+function formatDateTime(dateTimeString) {
+  if (!dateTimeString) return '-'
+  
+  const date = new Date(dateTimeString)
+  
+  // Options for formatting
+  const options = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Tokyo',
+    hour12: false
+  }
+  
+  const formatted = new Intl.DateTimeFormat('id-ID', options).format(date)
+  return `${formatted} JST`
+}
+
+const period = computed(() => {
+  if (!active.value?.start_date || !active.value?.end_date) return '—'
+  
+  const start = formatDateTime(active.value.start_date)
+  const end = formatDateTime(active.value.end_date)
+  
+  return `${start} s/d ${end}`
+})
 
 function openDetail(candidate) {
   selectedCandidate.value = candidate
@@ -161,7 +175,7 @@ function openPDF() {
 onMounted(async () => {
   loading.value = true
   error.value = null
-  
+
   try {
     const { data } = await http.get('/api/elections/latest/')
     active.value = data
@@ -175,7 +189,7 @@ onMounted(async () => {
     }
   } catch (err) {
     console.error('Error loading election data:', err)
-    
+
     if (err.response?.status === 404) {
       error.value = 'Belum ada election yang tersedia saat ini.'
     } else {
