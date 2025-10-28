@@ -55,10 +55,17 @@
 
         <!-- Preview Periode -->
         <v-alert v-if="form.start_date && form.end_date" type="info" variant="tonal" class="mb-3">
-          <strong>Preview Periode:</strong><br>
-          {{ formatDateTime(form.start_date, form.start_time) }}
-          s/d
-          {{ formatDateTime(form.end_date, form.end_time) }}
+          <div class="text-subtitle-2 font-weight-bold mb-1">Preview Periode Voting:</div>
+          <div class="text-body-2">
+            <div class="d-flex align-center mb-1">
+              <v-icon size="small" class="mr-2">mdi-calendar-start</v-icon>
+              <strong>Mulai:</strong>&nbsp;{{ formatDateTime(form.start_date, form.start_time) }}
+            </div>
+            <div class="d-flex align-center">
+              <v-icon size="small" class="mr-2">mdi-calendar-end</v-icon>
+              <strong>Berakhir:</strong>&nbsp;{{ formatDateTime(form.end_date, form.end_time) }}
+            </div>
+          </div>
         </v-alert>
 
         <div class="d-flex gap-2">
@@ -324,8 +331,22 @@ const candidates = ref([])
 // Helper function to format datetime for display
 function formatDateTime(date, time) {
   if (!date) return '-'
+  
   const timeStr = time || '00:00'
-  return `${date} ${timeStr}`
+  const dateTimeString = `${date}T${timeStr}:00`
+  const dateObj = new Date(dateTimeString)
+  
+  const options = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }
+  
+  const formatted = new Intl.DateTimeFormat('id-ID', options).format(dateObj)
+  return `${formatted} JST`
 }
 
 // Helper function to combine date and time to ISO format
@@ -338,7 +359,7 @@ function combineDateTime(date, time) {
 // Helper function to parse datetime string to date and time
 function parseDateTime(datetime) {
   if (!datetime) return { date: '', time: '00:00' }
-  
+
   // Handle both YYYY-MM-DD and YYYY-MM-DDTHH:mm:ss formats
   if (datetime.includes('T')) {
     const [date, timeWithSeconds] = datetime.split('T')
@@ -426,16 +447,16 @@ async function fetchData() {
     const { data: latest } = await http.get('/api/elections/latest/')
     form.id = latest.id
     form.year = latest.year
-    
+
     // Parse datetime to date and time
     const startDT = new Date(latest.start_date)
     const endDT = new Date(latest.end_date)
-    
+
     form.start_date = startDT.toISOString().split('T')[0]
     form.start_time = startDT.toTimeString().substring(0, 5)
     form.end_date = endDT.toISOString().split('T')[0]
     form.end_time = endDT.toTimeString().substring(0, 5)
-    
+
     form.is_open = latest.is_open
     form.show_results = latest.show_results
 
@@ -470,16 +491,16 @@ async function saveElection() {
     // Parse response
     form.id = data.id
     form.year = data.year
-    
+
     // Extract date and time from response
     const startDT = new Date(data.start_date)
     const endDT = new Date(data.end_date)
-    
+
     form.start_date = startDT.toISOString().split('T')[0]
     form.start_time = startDT.toTimeString().substring(0, 5)
     form.end_date = endDT.toISOString().split('T')[0]
     form.end_time = endDT.toTimeString().substring(0, 5)
-    
+
     form.is_open = data.is_open
     form.show_results = data.show_results
 
@@ -510,23 +531,23 @@ async function createElection() {
     console.log('Creating election with payload:', payload)  // Debug
 
     const { data } = await http.post('/api/admin/elections/', payload)
-    
+
     // Parse response
     form.id = data.id
     form.year = data.year
-    
+
     // Extract date and time from response
     const startDT = new Date(data.start_date)
     const endDT = new Date(data.end_date)
-    
+
     form.start_date = startDT.toISOString().split('T')[0]
     form.start_time = startDT.toTimeString().substring(0, 5)
     form.end_date = endDT.toISOString().split('T')[0]
     form.end_time = endDT.toTimeString().substring(0, 5)
-    
+
     form.is_open = data.is_open
     form.show_results = data.show_results
-    
+
     candidates.value = []
     alert('Election baru dibuat.')
   } catch (e) {
