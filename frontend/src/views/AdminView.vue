@@ -11,8 +11,15 @@
         Masukkan <strong>Admin Key</strong> untuk mengelola election.
       </v-alert>
       <v-form v-if="!hasKey" @submit.prevent="saveKey" class="mb-4">
-        <v-text-field v-model="adminKeyInput" label="Admin Key (X-Admin-Key)" required />
-        <v-btn type="submit" color="primary" block>Simpan</v-btn>
+        <v-text-field 
+          v-model="adminKeyInput" 
+          label="Masukkan admin key" 
+          :type="showPassword ? 'text' : 'password'"
+          :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+          @click:append-inner="showPassword = !showPassword"
+          required 
+        />
+        <v-btn type="submit" color="primary" block>Masuk</v-btn>
       </v-form>
 
       <template v-else>
@@ -303,6 +310,7 @@ const sendResult = ref(null)
 const stats = ref({ total: 0, pending: 0, sent: 0, used: 0, last_sent_at: null })
 const statsLoading = ref(false)
 const editDialog = ref(false)
+const showPassword = ref(false)
 
 const form = reactive({
   id: null,
@@ -318,11 +326,16 @@ const candidates = ref([])
 function saveKey() {
   localStorage.setItem('adminKey', adminKeyInput.value.trim())
   hasKey.value = true
+  showPassword.value = false  // Reset visibility
+  adminKeyInput.value = ''    // Clear input for security
   fetchData()
 }
+
 function clearKey() {
   localStorage.removeItem('adminKey')
   hasKey.value = false
+  adminKeyInput.value = ''
+  showPassword.value = false
 }
 
 async function fetchStats() {
