@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework import status
 from rest_framework.response import Response
 from django.utils.timezone import now, localtime
+from django.utils import timezone
 from django.db.models import Count, Max
 import csv, io, re, os
 from django.http import FileResponse
@@ -14,6 +15,7 @@ from django.core.mail import EmailMultiAlternatives, get_connection
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.parsers import MultiPartParser, FormParser
+from datetime import datetime
 
 from .utils import (
     generate_token,
@@ -42,8 +44,12 @@ def _normalize_email(s: str) -> str:
     return (s or '').strip().lower()
 
 def get_active_election():
-    today = date.today()
-    return Election.objects.filter(start_date__lte=today, end_date__gte=today).order_by('-year').first()
+    """Get election that is currently active based on datetime"""
+    current_time = timezone.now()
+    return Election.objects.filter(
+        start_date__lte=current_time, 
+        end_date__gte=current_time
+    ).order_by('-year').first()
 
 class ActiveElectionView(generics.RetrieveAPIView):
     serializer_class = ElectionSerializer
@@ -206,7 +212,9 @@ def admin_send_tokens(request):
     election_name = f"Election {election.year} PPI Osaka–Nara"
     subject = f"Token Voting PPI Osaka–Nara {election.year}"
     vote_link = settings.FRONTEND_VOTE_URL
-    vote_deadline = election.end_date.strftime('%Y-%m-%d')
+    
+    # Format datetime untuk tampilan yang lebih baik
+    vote_deadline = election.end_date.strftime('%d %B %Y, %H:%M JST')
     support_email = settings.SUPPORT_EMAIL
 
     sent = 0
@@ -244,7 +252,7 @@ def admin_send_tokens(request):
             try:
                 num = conn.send_messages([msg])
                 if num == 1:
-                    vt.emailed_at = now()
+                    vt.emailed_at = timezone.now()
                     vt.save(update_fields=['emailed_at'])
                     sent += 1
                 else:

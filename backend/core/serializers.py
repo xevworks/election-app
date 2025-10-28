@@ -26,7 +26,8 @@ class CandidateAdminCreateSerializer(serializers.ModelSerializer):
         fields = ['id', 'election', 'name', 'institution', 'vision', 'poster', 'poster_url']
         extra_kwargs = {
             'poster': {'required': False},
-            'poster_url': {'required': False}
+            'poster_url': {'required': False},
+            'institution': {'required': False},
         }
 
 class ElectionSerializer(serializers.ModelSerializer):
