@@ -30,7 +30,12 @@
             <v-text-field v-model.number="form.year" label="Tahun" type="number" />
           </v-col>
           <v-col cols="12" md="6" class="d-flex align-center">
-            <v-switch v-model="form.is_open" inset label="Voting dibuka?" />
+            <v-switch 
+              v-model="form.is_open" 
+              inset 
+              label="Voting dibuka?" 
+              color="success"
+            />
           </v-col>
           <v-col cols="12" md="6">
             <v-text-field v-model="form.start_date" label="Mulai (YYYY-MM-DD)" placeholder="2025-10-01" />
@@ -39,7 +44,12 @@
             <v-text-field v-model="form.end_date" label="Berakhir (YYYY-MM-DD)" placeholder="2025-10-15" />
           </v-col>
           <v-col cols="12" md="6">
-            <v-switch v-model="form.show_results" inset label="Tampilkan hasil di beranda?" />
+            <v-switch 
+              v-model="form.show_results" 
+              inset 
+              label="Tampilkan hasil di beranda?" 
+              color="success"
+            />
           </v-col>
         </v-row>
         <div class="d-flex gap-2">
@@ -134,7 +144,12 @@
               prepend-icon="mdi-file-delimited" />
           </v-col>
           <v-col cols="12" md="6">
-            <v-switch v-model="importOverwrite" label="Overwrite token jika email sudah ada?" inset />
+            <v-switch 
+              v-model="importOverwrite" 
+              label="Overwrite token jika email sudah ada?" 
+              inset 
+              color="success"
+            />
           </v-col>
         </v-row>
         <v-btn :disabled="!csvFile || !form.id" color="primary" :loading="importing" @click="doImportCsv">
@@ -202,7 +217,13 @@
                 @click="sendTokens">
                 Kirim Token
               </v-btn>
-              <v-switch v-model="resendAll" label="Kirim ulang ke SEMUA" inset class="mt-2" />
+              <v-switch 
+                v-model="resendAll" 
+                label="Kirim ulang ke SEMUA" 
+                inset 
+                color="success"
+                class="mt-2" 
+              />
             </div>
           </div>
         </v-alert>
